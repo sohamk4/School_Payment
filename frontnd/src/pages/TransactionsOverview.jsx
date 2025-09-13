@@ -43,6 +43,7 @@ export default function TransactionsOverview() {
       const uniqueInstitutes = res.data.data.filter((institute, index, self) =>
         index === self.findIndex((t) => t.name === institute.name)
       );     
+
       return uniqueInstitutes;
     },
   });
@@ -254,7 +255,7 @@ export default function TransactionsOverview() {
             >
               <option value="">Institute</option>
               {institutes?.map((institute) => (
-                <option key={institute.id} value={institute.name}>
+                <option key={`${institute.id}-${institute.name}`} value={institute.name}>
                   {institute.name}
                 </option>
               ))}

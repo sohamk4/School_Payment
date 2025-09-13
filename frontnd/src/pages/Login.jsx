@@ -39,7 +39,6 @@ export default function Login() {
         onSubmit={handleSubmit}
         className="bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-2xl w-96 relative"
       >
-        {/* Dark mode toggle */}
         <button
           type="button"
           onClick={() => setDarkMode(!darkMode)}

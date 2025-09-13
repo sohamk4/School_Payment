@@ -9,7 +9,7 @@ import {
 } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider } from "./context/AuthContext";
-import { Sun, Moon } from "lucide-react"; // Import the icons
+import { Sun, Moon } from "lucide-react"; 
 
 import Login from "./pages/Login";
 import TransactionsOverview from "./pages/TransactionsOverview";
