@@ -1,5 +1,5 @@
 // src/context/AuthContext.js
-import React, { createContext,useContext, useState, useEffect, useRef } from "react";
+import React, { createContext,useContext, useState, useEffect, useRef,useCallback } from "react";
 import axios from "axios";
 
 
@@ -10,32 +10,36 @@ export const AuthProvider = ({ children }) => {
   const [csrfToken, setCsrfToken] = useState('');
   const isFetching = useRef(false);
 
-  const getCsrfToken = async () => {
+  const getCsrfToken = useCallback(async () => {
     if (isFetching.current || csrfToken) return;
     isFetching.current = true;
-    
+
     try {
+      console.log(process.env.REACT_APP_API_BASE_URL);
       const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/csrf-token`, {
         withCredentials: true,
       });
-
+      console.log(response.data.csrfToken);
       setCsrfToken(response.data.csrfToken);
-
     } catch (err) {
       console.error('CSRF token error:', err);
     } finally {
       isFetching.current = false;
     }
-  };
-
-  // If token exists, set default axios headers
+  }, [csrfToken]); 
+  
   useEffect(() => {
-    getCsrfToken(); 
-
-  }, []);
+    getCsrfToken();
+  }, [getCsrfToken]);
 
   const login = async (username, password) => {
     try {
+      console.log(csrfToken);
+      if (!csrfToken) {
+        console.log('Waiting for CSRF token...');
+        await getCsrfToken();
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
       console.log(process.env.REACT_APP_API_BASE_URL);
       const response = await axios.post(
         `${process.env.REACT_APP_API_BASE_URL}/auth/login`,
@@ -46,7 +50,7 @@ export const AuthProvider = ({ children }) => {
         {
           headers: {
             'Content-Type': 'application/json',
-            'X-CSRF-Token': csrfToken
+            'X-CSRF-Token': csrfToken,
           },
           withCredentials: true
         }

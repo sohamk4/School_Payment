@@ -16,7 +16,7 @@ export default function TransactionsOverview() {
   const [sortTimestamp, setSortTimestamp] = useState(Date.now());
   const [sortOrder, setSortOrder] = useState('dsc'); 
   
-  const { data, isLoading, error, refetch } = useQuery({
+  const { data, isLoading, error } = useQuery({
     queryKey: ["transactions", filterBy, dateFilter, submittedSearch, statusFilter, instituteFilter, currentPage, itemsPerPage,sortOrder,sortTimestamp],
     queryFn: async () => {     
       const params = new URLSearchParams();

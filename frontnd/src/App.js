@@ -8,7 +8,7 @@ import {
   useLocation,
 } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { AuthProvider, useAuth } from "./context/AuthContext";
+import { AuthProvider } from "./context/AuthContext";
 import { Sun, Moon } from "lucide-react"; // Import the icons
 
 import Login from "./pages/Login";
@@ -19,7 +19,6 @@ import TransactionStatusCheck from "./pages/TransactionStatusCheck";
 const queryClient = new QueryClient();
 
 
-// Layout for navbar
 function Layout({ children }) {
   const location = useLocation();
   const hideNavbar = location.pathname === "/login";
