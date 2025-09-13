@@ -27,10 +27,22 @@ const csrfProtection = csrf({
     key: '_csrf',
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict'
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+    maxAge: 3600
+  },
+  value: (req) => {
+    return req.headers['x-csrf-token'] || req.body._csrf;
   }
 });
 
+app.use((req, res, next) => {
+  if (req.path.startsWith('/webhooks') || 
+      req.method === 'OPTIONS' ||
+      req.path === '/csrf-token') {
+    return next();
+  }
+  csrfProtection(req, res, next);
+});
 app.use(bodyParser.json({
   verify: (req, res, buf) => {
     req.rawBody = buf;
