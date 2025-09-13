@@ -1,4 +1,3 @@
-[README.md](https://github.com/user-attachments/files/22312366/README.md)
 # School_Payment
 
 ## Project Overview
