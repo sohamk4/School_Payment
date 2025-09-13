@@ -13,12 +13,12 @@ const authRoutes = require('./routes/auth');
 const { authenticateJWT } = require('./middleware/auth');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = 5000;
 
 connectDB();
 app.use(cookieParser());
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://127.0.0.1:3000'],
+  origin: ['http://localhost:3000', 'http://127.0.0.1:3000','https://darling-crumble-9f5180.netlify.app/login'],
   credentials: true
 }));
 

@@ -11,7 +11,6 @@ exports.login = async (req, res) => {
         message: 'Invalid credentials'
       });
     }
-    console.log('die');
 
     const isPasswordValid = await user.comparePassword(password);
     if (!isPasswordValid) {
@@ -20,9 +19,8 @@ exports.login = async (req, res) => {
         message: 'Invalid credentials'
       });
     }
-    console.log('ss');
+
     const token = generateTokens(user);
-    console.log(token);
     res.cookie('token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
