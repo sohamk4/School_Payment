@@ -1,0 +1,8 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* small custom table hover helper when needed */
+.table-row-hover {
+  transition: background-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
