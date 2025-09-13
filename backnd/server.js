@@ -53,7 +53,7 @@ app.use('/api', paymentRoutes);
 app.use('/webhooks', webhookRoutes);
 app.use('/auth', authRoutes);
 
-app.get('/check', authenticateJWT,(req, res) => {
+app.get('/check',(req, res) => {
   res.status(200).json({ 
     success: true, 
     message: 'Server is running'
