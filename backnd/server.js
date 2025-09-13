@@ -45,10 +45,6 @@ app.get('/csrf-token', (req, res) => {
   res.json({ csrfToken: req.csrfToken() });
 });
 
-app.get('/', (req, res) => {
-  res.render('index', { API_BASE_URL: process.env.API_BASE_URL });
-});
-
 app.use('/api', paymentRoutes);
 app.use('/webhooks', webhookRoutes);
 app.use('/auth', authRoutes);
