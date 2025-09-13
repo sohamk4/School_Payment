@@ -164,6 +164,8 @@ We welcome contributions to this project! To contribute, please follow these ste
 
 This project has no specified license.
 
-## Acknowledgments
+## Deployed Application Links
 
-- Thanks to the Node.js community for providing excellent tools and libraries.
+Frontend: https://effervescent-malabi-1d0307.netlify.app/login
+
+Backend: https://school-payments-qeob.onrender.com
