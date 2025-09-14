@@ -168,4 +168,4 @@ This project has no specified license.
 
 Frontend: https://effervescent-malabi-1d0307.netlify.app/login
 
-Backend: https://school-payments-qeob.onrender.com
+Backend(use this link too create payment and test server): https://school-payments-qeob.onrender.com/
