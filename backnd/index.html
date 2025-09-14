@@ -149,6 +149,11 @@
             <div id="payment-section" class="hidden">
                 <h2>Create Payment</h2>
                 <div id="payment-message" class="message hidden"></div>
+
+                <div class="form-group">
+                    <label for="scid">School ID</label>
+                    <input type="text" id="scid" placeholder="Enter School ID">
+                </div>
                 
                 <div class="form-group">
                     <label for="amount">Amount (INR)</label>
@@ -272,7 +277,7 @@
                 
                 if (data.success) {
                     
-                    currentSchoolId = username;
+                    
                     
                     showMessage('login-message', 'Login successful!', 'success');
                     
@@ -291,6 +296,7 @@
         
         // Create payment function
         async function createPayment() {
+            const schoolId = document.getElementById('scid').value;
             const amount = document.getElementById('amount').value;
             const callbackUrl = document.getElementById('callback_url').value;
             const gatewayName = document.getElementById('gateway_name').value;
@@ -300,11 +306,12 @@
             const institutename= document.getElementById('institute_name').value
             const studentPhoneNo = document.getElementById('student_phoneno').value;
             
-            if (!amount || !callbackUrl || !studentName || !studentId || !studentPhoneNo) {
+            if (!amount || !callbackUrl || !studentName || !studentId || !studentPhoneNo ||!schoolId) {
                 showMessage('payment-message', 'Please fill in all fields', 'error');
                 return;
             }
-            
+
+            currentSchoolId = schoolId;
             try {
                 
                 await getCsrfToken();
