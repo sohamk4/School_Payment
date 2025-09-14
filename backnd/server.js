@@ -53,6 +53,10 @@ app.use(express.static(__dirname));
 
 app.use(csrfProtection);
 
+app.get('/',(req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
+
 app.get('/csrf-token', (req, res) => {
   res.json({ csrfToken: req.csrfToken() });
 });
