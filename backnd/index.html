@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>School Payment System</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background-color: #4a6fa5;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: 8px 8px 0 0;
+        }
+        
+        .card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+        
+        h1, h2 {
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        
+        button {
+            background-color: #4a6fa5;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #3a5a80;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .message {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .payment-details {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 15px;
+        }
+        
+        .nav {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        
+        .nav button {
+            flex: 1;
+            margin: 0 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>School Payment System</h1>
+        </header>
+        
+        <div class="card">
+            <!-- Login Section -->
+            <div id="login-section">
+                <h2>Login</h2>
+                <div id="login-message" class="message hidden"></div>
+                
+                <div class="form-group">
+                    <label for="username">username</label>
+                    <input type="text" id="username" placeholder="Enter your username">
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" placeholder="Enter your password">
+                </div>
+                
+                <button onclick="login()">Login</button>
+            </div>
+            
+            <!-- Payment Section (Initially Hidden) -->
+            <div id="payment-section" class="hidden">
+                <h2>Create Payment</h2>
+                <div id="payment-message" class="message hidden"></div>
+                
+                <div class="form-group">
+                    <label for="amount">Amount (INR)</label>
+                    <input type="number" id="amount" placeholder="Enter amount in INR">
+                </div>
+                
+                <div class="form-group">
+                    <label for="callback_url">Callback URL</label>
+                    <input type="url" id="callback_url" placeholder="https://example.com/callback">
+                </div>
+                
+                <div class="form-group">
+                    <label for="gateway_name">Payment Gateway</label>
+                    <select id="gateway_name">
+                        <option value="PhonePe">PhonePe</option>
+                        <option value="Razorpay">Razorpay</option>
+                        <option value="Paytm">Paytm</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="student_name">Student Name</label>
+                    <input type="text" id="student_name" placeholder="Student name">
+                </div>
+                
+                <div class="form-group">
+                    <label for="student_id">Student ID</label>
+                    <input type="text" id="student_id" placeholder="Student ID">
+                </div>
+
+                <div class="form-group">
+                    <label for="student_id">Trustee ID</label>
+                    <input type="text" id="trustee_id" placeholder="Student ID">
+                </div>
+
+                <div class="form-group">
+                    <label for="institute_name">Institute Name</label>
+                    <input type="text" id="institute_name" placeholder="Institute Name">
+                </div>
+                
+                <div class="form-group">
+                    <label for="student_phoneno">Student Phone no</label>
+                    <input type="text" id="student_phoneno" placeholder="Student PhoneNo">
+                </div>
+                
+                <button onclick="createPayment()">Create Payment</button>
+                
+                <div id="payment-result" class="payment-details hidden">
+                    <h3>Payment Created Successfully!</h3>
+                    <p><strong>Collect Request ID:</strong> <span id="collect-request-id"></span></p>
+                    <p><strong>Payment URL:</strong> <a id="payment-url" target="_blank"></a></p>
+                    <button onclick="checkPaymentStatus()">Check Payment Status</button>
+                    <div id="status-result" class="message hidden"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = "http://localhost:5000";
+        
+        let currentSchoolId = '';
+        let currentCollectRequestId = '';
+        let csrfToken = '';
+        
+        function showMessage(elementId, message, type) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = `message ${type}`;
+            element.classList.remove('hidden');
+            
+            setTimeout(() => {
+                element.classList.add('hidden');
+            }, 5000);
+        }
+        
+        async function getCsrfToken() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/csrf-token`,  {
+                  withCredentials: true,
+                });
+                const data = await response.json();
+
+                csrfToken = data.csrfToken;
+                return csrfToken;
+            } catch (error) {
+                console.error('Error fetching CSRF token:', error);
+                showMessage('login-message', 'Failed to get security token', 'error');
+                throw error;
+            }
+        }
+        
+        // Login function
+        async function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            if (!username || !password) {
+                showMessage('login-message', 'Please fill in all fields', 'error');
+                return;
+            }
+            
+            try {
+                // First get CSRF token
+                await getCsrfToken();
+                
+                const response = await fetch(`${API_BASE_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-Token': csrfToken 
+                    },
+                    credentials: 'include', 
+                    body: JSON.stringify({
+                        username: username,
+                        password: password
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    
+                    currentSchoolId = username;
+                    
+                    showMessage('login-message', 'Login successful!', 'success');
+                    
+                    
+                    setTimeout(() => {
+                        document.getElementById('login-section').classList.add('hidden');
+                        document.getElementById('payment-section').classList.remove('hidden');
+                    }, 1500);
+                } else {
+                    showMessage('login-message', data.message || 'Login failed', 'error');
+                }
+            } catch (error) {
+                showMessage('login-message', 'Login error: ' + error.message, 'error');
+            }
+        }
+        
+        // Create payment function
+        async function createPayment() {
+            const amount = document.getElementById('amount').value;
+            const callbackUrl = document.getElementById('callback_url').value;
+            const gatewayName = document.getElementById('gateway_name').value;
+            const studentName = document.getElementById('student_name').value;
+            const studentId = document.getElementById('student_id').value;
+            const trusteeId = document.getElementById('trustee_id').value;
+            const institutename= document.getElementById('institute_name').value
+            const studentPhoneNo = document.getElementById('student_phoneno').value;
+            
+            if (!amount || !callbackUrl || !studentName || !studentId || !studentPhoneNo) {
+                showMessage('payment-message', 'Please fill in all fields', 'error');
+                return;
+            }
+            
+            try {
+                
+                await getCsrfToken();
+
+                const response = await fetch(`${API_BASE_URL}/api/create-payment`, {
+                    method: 'POST', 
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-Token': csrfToken 
+                    },
+                    credentials: 'include', 
+                    body: JSON.stringify({
+                        school_id: currentSchoolId,
+                        instituteName:institutename,
+                        trustee_id:trusteeId,
+                        amount: parseFloat(amount),
+                        callback_url: callbackUrl,
+                        gateway_name: gatewayName,
+                        student_info: {
+                            name: studentName,
+                            id: studentId,
+                            phone_no: studentPhoneNo
+                        }
+                    })
+                });
+                
+                const data = await response.json();
+
+                if (data.success) {
+                    showMessage('payment-message', 'Payment created successfully!', 'success');
+                    
+                    
+                    document.getElementById('payment-result').classList.remove('hidden');
+                    document.getElementById('collect-request-id').textContent = data.collect_request_id;
+                    document.getElementById('payment-url').textContent = data.payment_url;
+                    document.getElementById('payment-url').href = data.payment_url;
+                    
+                    
+                    currentCollectRequestId = data.collect_request_id;
+                } else {
+                    showMessage('payment-message', data.error || 'Payment creation failed', 'error');
+                }
+            } catch (error) {
+                showMessage('payment-message', 'Payment creation error: ' + error.message, 'error');
+            }
+        }
+        
+        // Check payment status function
+        async function checkPaymentStatus() {
+            if (!currentCollectRequestId) {
+                showMessage('status-result', 'No payment created yet', 'error');
+                return;
+            }
+            
+            try {
+               
+                await getCsrfToken();
+                const response = await fetch(
+                    `${API_BASE_URL}/api/payment-status/${currentCollectRequestId}?school_id=${currentSchoolId}`, 
+                    {
+                        method: 'GET',
+                        headers: {
+                            'X-CSRF-Token': csrfToken 
+                        },
+                        credentials: 'include' 
+                    }
+                );
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showMessage('status-result', `Payment Status: ${data.status} | Amount: ${data.amount}`, 'success');
+                } else {
+                    showMessage('status-result', data.error || 'Failed to check payment status', 'error');
+                }
+            } catch (error) {
+                showMessage('status-result', 'Status check error: ' + error.message, 'error');
+            }
+        }
+                
+        // Pre-fetch CSRF token when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            getCsrfToken().catch(() => {});
+        });
+    </script>
+</body>
+</html>
