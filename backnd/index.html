@@ -19,7 +19,7 @@
         }
         
         .container {
-            max-width: 800px;
+            max-width: 1000px;
             margin: 0 auto;
             padding: 20px;
         }
@@ -40,7 +40,7 @@
             margin-bottom: 20px;
         }
         
-        h1, h2 {
+        h1, h2, h3 {
             margin-bottom: 15px;
             color: #2c3e50;
         }
@@ -55,12 +55,18 @@
             font-weight: 600;
         }
         
-        input, select {
+        input, select, textarea {
             width: 100%;
             padding: 12px;
             border: 1px solid #ddd;
             border-radius: 4px;
             font-size: 16px;
+        }
+        
+        textarea {
+            min-height: 200px;
+            font-family: monospace;
+            resize: vertical;
         }
         
         button {
@@ -73,10 +79,19 @@
             font-size: 16px;
             font-weight: 600;
             transition: background-color 0.3s;
+            margin: 5px;
         }
         
         button:hover {
             background-color: #3a5a80;
+        }
+        
+        button.secondary {
+            background-color: #6c757d;
+        }
+        
+        button.secondary:hover {
+            background-color: #5a6268;
         }
         
         .hidden {
@@ -108,15 +123,43 @@
             margin-top: 15px;
         }
         
-        .nav {
+        .button-group {
             display: flex;
-            justify-content: space-between;
-            margin-bottom: 20px;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
         }
         
-        .nav button {
+        .webhook-section {
+            margin-top: 20px;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+        }
+        
+        .json-preview {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 10px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .two-column {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .two-column > div {
             flex: 1;
-            margin: 0 5px;
+        }
+        
+        @media (max-width: 768px) {
+            .two-column {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
@@ -149,11 +192,6 @@
             <div id="payment-section" class="hidden">
                 <h2>Create Payment</h2>
                 <div id="payment-message" class="message hidden"></div>
-
-                <div class="form-group">
-                    <label for="scid">School ID</label>
-                    <input type="text" id="scid" placeholder="Enter School ID">
-                </div>
                 
                 <div class="form-group">
                     <label for="amount">Amount (INR)</label>
@@ -168,9 +206,11 @@
                 <div class="form-group">
                     <label for="gateway_name">Payment Gateway</label>
                     <select id="gateway_name">
-                        <option value="PhonePe">PhonePe</option>
+                        <option value="PayPal">PayPal</option>
                         <option value="Razorpay">Razorpay</option>
                         <option value="Paytm">Paytm</option>
+                        <option value="Stripe">Stripe</option>
+                        <option value="CashFree">CashFree</option>
                     </select>
                 </div>
                 
@@ -185,8 +225,8 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="student_id">Trustee ID</label>
-                    <input type="text" id="trustee_id" placeholder="Student ID">
+                    <label for="trustee_id">Trustee ID</label>
+                    <input type="text" id="trustee_id" placeholder="Trustee ID">
                 </div>
 
                 <div class="form-group">
@@ -205,20 +245,47 @@
                     <h3>Payment Created Successfully!</h3>
                     <p><strong>Collect Request ID:</strong> <span id="collect-request-id"></span></p>
                     <p><strong>Payment URL:</strong> <a id="payment-url" target="_blank"></a></p>
-                    <button onclick="checkPaymentStatus()">Check Payment Status</button>
+                    <div class="button-group">
+                        <button onclick="checkPaymentStatus()">Check Payment Status</button>
+                        <button id="webhook-button" class="hidden" onclick="showWebhookSection()">Prepare Webhook Notification</button>
+                    </div>
                     <div id="status-result" class="message hidden"></div>
+                    
+                    <!-- Webhook Section -->
+                    <div id="webhook-section" class="webhook-section hidden">
+                        <h3>Webhook Payload Editor</h3>
+                        <div class="two-column">
+                            <div>
+                                <label for="webhook-payload">Edit Webhook Payload:</label>
+                                <textarea id="webhook-payload" placeholder='Paste your webhook JSON payload here'></textarea>
+                            </div>
+                            <div>
+                                <label>Payload Preview:</label>
+                                <div id="payload-preview" class="json-preview">Payload will appear here</div>
+                            </div>
+                        </div>
+                        
+                        <div class="button-group">
+                            <button onclick="updatePayloadPreview()">Update Preview</button>
+                            <button onclick="useDefaultPayload()" class="secondary">Use Default Payload</button>
+                            <button onclick="sendWebhook()">Send Webhook</button>
+                        </div>
+                        
+                        <div id="webhook-result" class="message hidden"></div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        const API_BASE_URL = "https://school-payments-qeob.onrender.com";
+        const API_BASE_URL = 'http://localhost:7096'; 
         
         let currentSchoolId = '';
         let currentCollectRequestId = '';
         let csrfToken = '';
         
+        // Display message in a message element
         function showMessage(elementId, message, type) {
             const element = document.getElementById(elementId);
             element.textContent = message;
@@ -230,13 +297,14 @@
             }, 5000);
         }
         
+        // Function to get CSRF token
         async function getCsrfToken() {
             try {
                 const response = await fetch(`${API_BASE_URL}/csrf-token`,  {
-                  withCredentials: true,
+                  credentials: 'include',
                 });
                 const data = await response.json();
-
+                console.log(data);
                 csrfToken = data.csrfToken;
                 return csrfToken;
             } catch (error) {
@@ -257,7 +325,6 @@
             }
             
             try {
-                // First get CSRF token
                 await getCsrfToken();
                 
                 const response = await fetch(`${API_BASE_URL}/auth/login`, {
@@ -276,11 +343,8 @@
                 const data = await response.json();
                 
                 if (data.success) {
-                    
-                    
-                    
+                
                     showMessage('login-message', 'Login successful!', 'success');
-                    
                     
                     setTimeout(() => {
                         document.getElementById('login-section').classList.add('hidden');
@@ -290,13 +354,19 @@
                     showMessage('login-message', data.message || 'Login failed', 'error');
                 }
             } catch (error) {
-                showMessage('login-message', 'Login error: ' + error.message, 'error');
+                console.log(error);
+                if (error.details && error.details.length > 0) {
+                    showMessage('login-message', 'Login error: ' + error.details[0].message, 'error');
+                } else if (error.message) {
+                    showMessage('login-message', 'Login error: ' + error.message, 'error');
+                } else {
+                    showMessage('login-message', 'Login error: Unknown error occurred', 'error');
+                }
             }
         }
         
         // Create payment function
         async function createPayment() {
-            const schoolId = document.getElementById('scid').value;
             const amount = document.getElementById('amount').value;
             const callbackUrl = document.getElementById('callback_url').value;
             const gatewayName = document.getElementById('gateway_name').value;
@@ -306,16 +376,14 @@
             const institutename= document.getElementById('institute_name').value
             const studentPhoneNo = document.getElementById('student_phoneno').value;
             
-            if (!amount || !callbackUrl || !studentName || !studentId || !studentPhoneNo ||!schoolId) {
+            if (!amount || !callbackUrl || !studentName || !studentId || !studentPhoneNo || !institutename ) {
                 showMessage('payment-message', 'Please fill in all fields', 'error');
                 return;
             }
 
-            currentSchoolId = schoolId;
+            currentSchoolId = "65b0e6293e9f76a9694d84b4";
             try {
-                
                 await getCsrfToken();
-
                 const response = await fetch(`${API_BASE_URL}/api/create-payment`, {
                     method: 'POST', 
                     headers: {
@@ -339,16 +407,14 @@
                 });
                 
                 const data = await response.json();
-
+                console.log(data);
                 if (data.success) {
                     showMessage('payment-message', 'Payment created successfully!', 'success');
-                    
                     
                     document.getElementById('payment-result').classList.remove('hidden');
                     document.getElementById('collect-request-id').textContent = data.collect_request_id;
                     document.getElementById('payment-url').textContent = data.payment_url;
                     document.getElementById('payment-url').href = data.payment_url;
-                    
                     
                     currentCollectRequestId = data.collect_request_id;
                 } else {
@@ -359,7 +425,6 @@
             }
         }
         
-        // Check payment status function
         async function checkPaymentStatus() {
             if (!currentCollectRequestId) {
                 showMessage('status-result', 'No payment created yet', 'error');
@@ -380,21 +445,105 @@
                     }
                 );
                 
-                const data = await response.json();
-                
+                const data = await response.json();                
                 if (data.success) {
                     showMessage('status-result', `Payment Status: ${data.status} | Amount: ${data.amount}`, 'success');
+                    document.getElementById('webhook-button').classList.remove('hidden');
                 } else {
                     showMessage('status-result', data.error || 'Failed to check payment status', 'error');
                 }
             } catch (error) {
+
                 showMessage('status-result', 'Status check error: ' + error.message, 'error');
             }
         }
+
+        // Show webhook section with default payload
+        function showWebhookSection() {
+            document.getElementById('webhook-section').classList.remove('hidden');
+            useDefaultPayload();
+        }
+
+        // Use payload
+        function useDefaultPayload() {
+            const defaultPayload = {
+                status: 200,
+                order_info: {
+                    order_id: `${currentCollectRequestId}/${currentSchoolId}`,
+                    order_amount: 500,
+                    transaction_amount: 550,
+                    gateway: "PhonePe",
+                    bank_reference: "YESBNK222",
+                    status: "success",
+                    payment_mode: "upi",
+                    payemnt_details: "success@ybl",
+                    Payment_message: "payment success",
+                    payment_time: new Date().toISOString(),
+                    error_message: "NA"
+                }
+            };
+            
+            document.getElementById('webhook-payload').value = JSON.stringify(defaultPayload, null, 2);
+            updatePayloadPreview();
+        }
+
+        // payload preview
+        function updatePayloadPreview() {
+            try {
+                const payloadText = document.getElementById('webhook-payload').value;
+                const payloadObj = JSON.parse(payloadText);
+                document.getElementById('payload-preview').textContent = JSON.stringify(payloadObj, null, 2);
+                document.getElementById('payload-preview').style.color = '#155724';
+            } catch (e) {
+                document.getElementById('payload-preview').textContent = 'Invalid JSON: ' + e.message;
+                document.getElementById('payload-preview').style.color = '#721c24';
+            }
+        }
+
+        // Send webhook
+        async function sendWebhook() {
+            try {
+                await getCsrfToken();
                 
-        // Pre-fetch CSRF token when page loads
+                const payloadText = document.getElementById('webhook-payload').value;
+                let webhookPayload;
+                
+                try {
+                    webhookPayload = JSON.parse(payloadText);
+                } catch (e) {
+                    showMessage('webhook-result', 'Invalid JSON payload: ' + e.message, 'error');
+                    return;
+                }
+
+                console.log('Sending webhook:', webhookPayload);
+
+                const response = await fetch(`${API_BASE_URL}/webhooks/webhook`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-Token': csrfToken
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify(webhookPayload)
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showMessage('webhook-result', 'Webhook sent successfully!', 'success');
+                } else {
+                    showMessage('webhook-result', `Webhook failed: ${data.error || 'Unknown error'}`, 'error');
+                }
+            } catch (error) {
+                showMessage('webhook-result', 'Webhook error: ' + error.message, 'error');
+            }
+        }
+                
+        // CSRF token page loads
         document.addEventListener('DOMContentLoaded', function() {
-            getCsrfToken().catch(() => {});
+            getCsrfToken().catch(() => {
+                console.log('CSRF token fetch failed on page load, will retry when needed');
+            });
         });
     </script>
 </body>

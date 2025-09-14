@@ -5,11 +5,12 @@ const{validateWebhookPayload,handleValidationErrors}=require('../utils/Validates
 exports.handelwebhook = [validateWebhookPayload,handleValidationErrors,async (req, res) => {
   try {
     const payload = req.body;
-
+    console.log(payload);
     let collectId = null;
     if (payload.order_info && payload.order_info.order_id) {
       const idParts = payload.order_info.order_id.split('/');
       collectId = idParts[0];
+      console.log(collectId);
     }
 
     const webhookLog = new WebhookLog({
@@ -69,7 +70,7 @@ exports.handelwebhook = [validateWebhookPayload,handleValidationErrors,async (re
       });
     }
 
-    let orderStatus = await OrderStatus.findOne({ collect_id: collectId });
+    let orderStatus = await OrderStatus.findOne({ customer_id: collectId });
 
     if (!orderStatus) {
       webhookLog.status = 'FAILED';

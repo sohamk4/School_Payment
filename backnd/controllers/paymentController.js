@@ -73,26 +73,11 @@ exports.createPayment = [validateOrder,handleValidationErrors,async (req, res) =
   }
 }];
 
-exports.createCollectRequest = [validateCollectRequest,async (req, res) => {
+exports.createCollectRequest = [validateCollectRequest,handleValidationErrors,async (req, res) => {
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        success: false,
-        error: 'Validation failed',
-        details: errors.array().map(err => ({
-          field: err.param,
-          message: err.msg,
-          value: err.value
-        }))
-      });
-    }
     const { collect_request_id } = req.params;
     const { school_id } = req.query;
 
-    if (!school_id) {
-      return res.status(400).json({ error: 'school_id is required' });
-    }
 
     const jwtPayload = {
       school_id: school_id.toString(),

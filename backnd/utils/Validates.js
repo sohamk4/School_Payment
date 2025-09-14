@@ -77,17 +77,12 @@ const validateCollectRequest = [
       .notEmpty()
       .withMessage('Collect request ID is required')
       .isString()
-      .withMessage('Collect request ID must be a string')
-      .custom(value => mongoose.Types.ObjectId.isValid(value))
-      .withMessage('Collect request ID must be a valid ObjectId'),
+      .withMessage('Collect request ID must be a string'),
   
     query('school_id')
       .notEmpty() 
       .withMessage('School ID is required')
-      .isString()
-      .withMessage('School ID must be a string')
-      .custom(value => mongoose.Types.ObjectId.isValid(value))
-      .withMessage('School ID must be a valid ObjectId'),
+      .isString(),
   ]
 
   const validateGetAllTransactions = [
